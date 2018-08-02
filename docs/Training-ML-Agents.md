@@ -1,28 +1,30 @@
 # Training ML-Agents
 
-ML-Agents conducts training using an external Python training process. During training, this external process communicates with the Academy object in the Unity scene to generate a block of agent experiences. These experiences become the training set for a neural network used to optimize the agent's policy (which is essentially a mathematical function mapping observations to actions). In reinforcement learning, the neural network optimizes the policy by maximizing the expected rewards. In imitation learning, the neural network optimizes the policy to achieve the smallest difference between the actions chosen by the agent trainee and the actions chosen by the expert in the same situation. 
+The ML-Agents toolkit conducts training using an external Python training process. During training, this external process communicates with the Academy object in the Unity scene to generate a block of agent experiences. These experiences become the training set for a neural network used to optimize the agent's policy (which is essentially a mathematical function mapping observations to actions). In reinforcement learning, the neural network optimizes the policy by maximizing the expected rewards. In imitation learning, the neural network optimizes the policy to achieve the smallest difference between the actions chosen by the agent trainee and the actions chosen by the expert in the same situation. 
 
 The output of the training process is a model file containing the optimized policy. This model file is a TensorFlow data graph containing the mathematical operations and the optimized weights selected during the training process. You can use the generated model file with the Internal Brain type in your Unity project to decide the best course of action for an agent. 
 
 Use the Python program, `learn.py` to train your agents. This program can be found in the `python` directory of the ML-Agents SDK. The [configuration file](#training-config-file), `trainer_config.yaml` specifies the hyperparameters used during training. You can edit this file with a text editor to add a specific configuration for each brain.
 
-For a broader overview of reinforcement learning, imitation learning and the ML-Agents training process, see [ML-Agents Overview](ML-Agents-Overview.md).
+For a broader overview of reinforcement learning, imitation learning and the ML-Agents training process, see [ML-Agents Toolkit Overview](ML-Agents-Overview.md).
 
-## Training with Learn.py
+## Training with learn.py
 
-Use the Python `Learn.py` program to train agents. `Learn.py` supports training with [reinforcement learning](Background-Machine-Learning.md#reinforcement-learning), [curriculum learning](Training-Curriculum-Learning.md), and [behavioral cloning imitation learning](Training-Imitation-Learning.md).
+Use the Python `learn.py` program to train agents. `learn.py` supports training with [reinforcement learning](Background-Machine-Learning.md#reinforcement-learning), [curriculum learning](Training-Curriculum-Learning.md), and [behavioral cloning imitation learning](Training-Imitation-Learning.md).
 
-Run `Learn.py` from the command line to launch the training process. Use the command line patterns and the `trainer_config.yaml` file to control training options.
+Run `learn.py` from the command line to launch the training process. Use the command line patterns and the `trainer_config.yaml` file to control training options.
 
 The basic command for training is:
 
-    python3 learn.py <env_file_path> --run-id=<run-identifier> --train
+    python3 learn.py <env_name> --run-id=<run-identifier> --train
 
-where `<env_file_path>` is the path to your Unity executable containing the agents to be trained and `<run-identifier>` is an optional identifier you can use to identify the results of individual training runs.
+where 
+ * `<env_name>`__(Optional)__ is the name (including path) of your Unity executable containing the agents to be trained. If `<env_name>` is not passed, the training will happen in the Editor. Press the :arrow_forward: button in Unity when the message _"Start training by pressing the Play button in the Unity Editor"_ is displayed on the screen.
+ * `<run-identifier>` is an optional identifier you can use to identify the results of individual training runs.
 
-For example, suppose you have a project in Unity named "CatsOnBicyclesCatsOnBicycles" which contains agents ready to train. To perform the training:
+For example, suppose you have a project in Unity named "CatsOnBicycles" which contains agents ready to train. To perform the training:
 
-1. Build the project, making sure that you only include the training scene.
+1. [Build the project](Learning-Environment-Executable.md), making sure that you only include the training scene.
 2. Open a terminal or console window.
 3. Navigate to the ml-agents `python` folder.
 4. Run the following to launch the training process using the path to the Unity environment you built in step 1:
@@ -54,6 +56,7 @@ In addition to passing the path of the Unity executable containing your training
 * `--train` – Specifies whether to train model or only run in inference mode. When training, **always** use the `--train` option.
 * `--worker-id=<n>` – When you are running more than one training environment at the same time, assign each a unique worker-id number. The worker-id is added to the communication port opened between the current instance of learn.py and the ExternalCommunicator object in the Unity environment. Defaults to 0.
 * `--docker-target-name=<dt>` – The Docker Volume on which to store curriculum, executable and model files. See [Using Docker](Using-Docker.md).
+* `--no-graphics` - Specify this option to run the Unity executable in `-batchmode` and doesn't initialize the graphics driver. Use this only if your training doesn't involve visual observations (reading from Pixels). See [here](https://docs.unity3d.com/Manual/CommandLineArguments.html) for more details.
 
 ### Training config file
 
@@ -64,8 +67,10 @@ The training config file, `trainer_config.yaml` specifies the training method, t
 | batch_size | The number of experiences in each iteration of gradient descent.| PPO, BC |
 | batches_per_epoch | In imitation learning, the number of batches of training examples to collect before training the model.| BC |
 | beta | The strength of entropy regularization.| PPO, BC |
-| brain_to_imitate | For imitation learning, the name of the GameObject containing the Brain component to imitate. | BC |
-| buffer_size | The number of experiences to collect before updating the policy model. | PPO, BC |
+| brain\_to\_imitate | For imitation learning, the name of the GameObject containing the Brain component to imitate. | BC |
+| buffer_size | The number of experiences to collect before updating the policy model. | PPO |
+| curiosity\_enc\_size | The size of the encoding to use in the forward and inverse models in the Curioity module. | PPO |
+| curiosity_strength | Magnitude of intrinsic reward generated by Intrinsic Curiosity Module. | PPO |
 | epsilon | Influences how rapidly the policy can evolve during training.| PPO, BC |
 | gamma | The reward discount rate for the Generalized Advantage Estimator (GAE).  | PPO  |
 | hidden_units | The number of units in the hidden layers of the neural network. | PPO, BC |
@@ -80,6 +85,7 @@ The training config file, `trainer_config.yaml` specifies the training method, t
 | summary_freq | How often, in steps, to save training statistics. This determines the number of data points shown by TensorBoard. | PPO, BC |
 | time_horizon | How many steps of experience to collect per-agent before adding it to the experience buffer. | PPO, BC |
 | trainer | The type of training to perform: "ppo" or "imitation".| PPO, BC |
+| use_curiosity | Train using an additional intrinsic reward signal generated from Intrinsic Curiosity Module. | PPO |
 | use_recurrent | Train using a recurrent neural network. See [Using Recurrent Neural Networks](Feature-Memory.md).| PPO, BC |
 || PPO = Proximal Policy Optimization, BC = Behavioral Cloning (Imitation)) ||
 

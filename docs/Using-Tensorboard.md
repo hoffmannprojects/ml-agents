@@ -1,6 +1,6 @@
 # Using TensorBoard to Observe Training
 
-ML-Agents saves statistics during learning session that you can view with a TensorFlow utility named, [TensorBoard](https://www.tensorflow.org/programmers_guide/summaries_and_tensorboard).
+The ML-Agents toolkit saves statistics during learning session that you can view with a TensorFlow utility named, [TensorBoard](https://www.tensorflow.org/programmers_guide/summaries_and_tensorboard).
 
 The `learn.py` program saves training statistics to a folder named `summaries`, organized by the `run-id` value you assign to a training session.
 
@@ -21,7 +21,7 @@ On the left side of the TensorBoard window, you can select which of the training
  
 When you run the training program, `learn.py`, you can use the `--save-freq` option to specify how frequently to save the statistics.
 
-## ML-Agents training statistics
+## The ML-Agents toolkit training statistics
 
 The ML-agents training program saves the following statistics:
 
@@ -43,7 +43,7 @@ agents.
 * Learning Rate - How large a step the training algorithm takes as it searches 
 for the optimal policy. Should decrease over time.
 
-* Policy Loss - The mean loss of the policy function update. Correlates to how
+* Policy Loss - The mean magnitude of policy loss function. Correlates to how
 much the policy (process for deciding actions) is changing. The magnitude of 
 this should decrease during a successful training session.
 
@@ -51,6 +51,11 @@ this should decrease during a successful training session.
 Should increase during a successful training session.
 
 * Value Loss - The mean loss of the value function update. Correlates to how
-well the model is able to predict the value of each state. This should decrease
-during a successful training session.
+well the model is able to predict the value of each state. This should increase
+while the agent is learning, and then decrease once the reward stabilizes.
 
+* _(Curiosity-Specific)_ Intrinsic Reward - This corresponds to the mean cumulative intrinsic reward generated per-episode. 
+
+* _(Curiosity-Specific)_ Forward Loss - The mean magnitude of the inverse model loss function. Corresponds to how well the model is able to predict the new observation encoding.
+
+* _(Curiosity-Specific)_ Inverse Loss - The mean magnitude of the forward model loss function. Corresponds to how well the model is able to predict the action taken between two observations.

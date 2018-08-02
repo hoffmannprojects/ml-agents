@@ -1,6 +1,6 @@
 <img src="docs/images/unity-wide.png" align="middle" width="3000"/>
 
-# Unity ML-Agents (Beta)
+# Unity ML-Agents 工具包(Beta)
 
 **注意:** 本文档为v0.3版本文档的部分翻译版，目前并不会随着英文版文档更新而更新。若要查看更新更全的英文版文档，请查看[这里](https://github.com/Unity-Technologies/ml-agents)。
 
@@ -32,7 +32,7 @@ TensorFlow），让游戏开发者和业余爱好者能够轻松地
 **除了安装和使用说明外，如需更多信息，
 请参阅我们的[文档主页](docs/Readme.md)。**如果您使用的
 是 v0.3 之前的 ML-Agents 版本，强烈建议您参考
-我们的[关于迁移到 v0.3 的指南](/docs/Migrating-v0.3.md)。
+我们的[关于迁移到 v0.3 的指南](/docs/Migrating.md)。
 
 我们还发布了一系列与 ML-Agents 相关的博客文章：
 - reinforcement learning（强化学习）概念概述

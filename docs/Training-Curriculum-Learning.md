@@ -10,7 +10,7 @@ task, such as moving toward an unobstructed goal, then the agent can easily lear
 accomplish the task. From there, we can slowly add to the difficulty of the task by 
 increasing the size of the wall, until the agent can complete the initially 
 near-impossible task of scaling the wall. We are including just such an environment with 
-ML-Agents 0.2, called Wall Area.
+the ML-Agents toolkit 0.2, called Wall Jump.
 
 ![Wall](images/curriculum.png)
 
@@ -19,8 +19,8 @@ obstructs the path to the goal._
  
 To see this in action, observe the two learning curves below. Each displays the reward 
 over time for an agent trained using PPO with the same set of training hyperparameters. 
-The difference is that the agent on the left was trained using the full-height wall 
-version of the task, and the right agent was trained using the curriculum version of 
+The difference is that one agent was trained using the full-height wall
+version of the task, and the other agent was trained using the curriculum version of
 the task. As you can see, without using curriculum learning the agent has a lot of 
 difficulty. We think that by using well-crafted curricula, agents trained using 
 reinforcement learning will be able to accomplish tasks otherwise much more difficult. 
@@ -44,14 +44,15 @@ then keep track of the current lesson and progress via TensorBoard.
 
 ```json
 {
-    "measure" : "reward",
-    "thresholds" : [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+    "measure" : "progress",
+    "thresholds" : [0.1, 0.3, 0.5],
     "min_lesson_length" : 2,
     "signal_smoothing" : true, 
     "parameters" : 
     {
-        "min_wall_height" : [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5],
-        "max_wall_height" : [1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
+        "big_wall_min_height" : [0.0, 4.0, 6.0, 8.0],
+        "big_wall_max_height" : [4.0, 7.0, 8.0, 8.0],
+        "small_wall_height" : [1.5, 2.0, 2.5, 4.0]
     }
 }
 ```
