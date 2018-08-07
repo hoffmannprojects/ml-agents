@@ -79,3 +79,7 @@ python/summaries
 
 
 .DS_Store
+
+unity-environment/Assets/__NoVersionControl\.meta
+
+unity-environment/Assets/__NoVersionControl/
