@@ -58,7 +58,7 @@ public class CreatingMLAgentFromScratchAgent : Agent
             transform.Rotate(Vector3.forward, vectorAction[0]);
             transform.Rotate(Vector3.right, vectorAction[1]);
 
-            // Ball hasn't been dropped.
+            // Reward if ball hasn't been dropped.
             if (!IsDone())
             {
                 SetReward(0.1f);
@@ -82,6 +82,33 @@ public class CreatingMLAgentFromScratchAgent : Agent
                     transform.Rotate(Vector3.forward, tiltSpeed);
                 }
             }
+
+            // X-rotation.
+            if (action == 2 || action == 3)
+            {
+                if (action == 2)
+                {
+                    transform.Rotate(Vector3.left, tiltSpeed);
+                }
+                else
+                {
+                    transform.Rotate(Vector3.right, tiltSpeed);
+                }
+            }
+
+            // Reward if ball hasn't been dropped.
+            if (!IsDone())
+            {
+                SetReward(0.1f);
+            }
+        }
+        var positionDelta = _ball.transform.position - transform.position;
+
+        // Reward if ball has been dropped.
+        if (positionDelta.x > 0.6f || positionDelta.y < -1f || positionDelta.z > 0.6f)
+        {
+            Done();
+            SetReward(-1f);
         }
     }
 }
