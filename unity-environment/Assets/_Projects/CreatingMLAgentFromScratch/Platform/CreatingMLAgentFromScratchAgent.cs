@@ -68,7 +68,7 @@ public class CreatingMLAgentFromScratchAgent : Agent
         else
         {
             int action = (int)vectorAction[0];
-            float tiltSpeed = 2f;
+            float tiltSpeed = 1.5f;
 
             // Z-rotation.
             if (action == 0 || action == 1)
@@ -105,7 +105,7 @@ public class CreatingMLAgentFromScratchAgent : Agent
         var positionDelta = _ball.transform.position - transform.position;
 
         // Reward if ball has been dropped.
-        if (positionDelta.x > 0.6f || positionDelta.y < -1f || positionDelta.z > 0.6f)
+        if (positionDelta.x > 1.2f || positionDelta.y < -1f || positionDelta.z > 1.2f)
         {
             Done();
             SetReward(-1f);

@@ -231,3 +231,7 @@ StudentRecurrentBrain:
     use_recurrent: true
     sequence_length: 32
     buffer_size: 128
+
+# Custom
+CreatingMLAgentFromScratchBrain:
+    max_steps: 200000
