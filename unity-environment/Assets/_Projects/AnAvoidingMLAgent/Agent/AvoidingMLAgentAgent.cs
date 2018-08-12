@@ -15,5 +15,15 @@ public class AvoidingMLAgentAgent : Agent
     private Rigidbody2D _rigidBody2D = null;
     private bool _hasCrashed = false;
 
+    /// <summary>
+    /// Only initializes when called from the ml-agents system,
+	/// not every time the game runs.
+    /// </summary>
+    public override void InitializeAgent()
+    {
+        _startPosition = transform.position;
 
+        _rigidBody2D = GetComponent<Rigidbody2D>();
+        Assert.IsNotNull(_rigidBody2D);
+    }
 }
