@@ -107,4 +107,15 @@ public class AvoidingMLAgentAgent : Agent
             SetReward(-1.0f);
         }
     }
+
+    /// <summary>
+    /// Called when IsDone() reports true or
+    /// when max steps is reached.
+    /// </summary>
+    public override void AgentReset()
+    {
+        transform.position = _startPosition;
+        _rigidBody2D.velocity = Vector2.zero;
+        _hasCrashed = false;
+    }
 }
