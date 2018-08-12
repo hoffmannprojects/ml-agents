@@ -40,4 +40,13 @@ public class AvoidingMLAgentAgent : Agent
         };
         AddVectorObs(state);
     }
+
+    /// <summary>
+    /// Reports collisions of collider & Rigidbody on the same GameObject.
+    /// </summary>
+    /// <param name="other"></param>
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        _hasCrashed = true;
+    }
 }
