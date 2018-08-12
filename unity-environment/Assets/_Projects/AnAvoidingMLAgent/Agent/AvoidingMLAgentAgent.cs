@@ -49,4 +49,40 @@ public class AvoidingMLAgentAgent : Agent
     {
         _hasCrashed = true;
     }
+
+    public override void AgentAction(float[] vectorAction, string textAction)
+    {
+        int action = (int)vectorAction[0];
+
+        // Assert.IsNotNull(brain);
+
+        // Discrete is in this case only included for practice.
+        // Only use discrete for discrete choices (eg. which weapon?, which stage?).
+        // Here, the amount matters, which makes continuous a better fit.
+        if (brain.brainParameters.vectorActionSpaceType == SpaceType.discrete)
+        {
+            switch (action)
+            {
+                case 0:
+                    _rigidBody2D.AddForce(Vector2.up * _force);
+                    break;
+                case 1:
+                    _rigidBody2D.AddForce(Vector2.down * _force);
+                    break;
+                case 2:
+                    _rigidBody2D.AddForce(Vector2.left * _force);
+                    break;
+                case 3:
+                    _rigidBody2D.AddForce(Vector2.right * _force);
+                    break;
+                default:
+                    _rigidBody2D.AddForce(Vector2.zero);
+                    break;
+            }
+            if (!IsDone())
+            {
+                SetReward(1.0f);
+            }
+        }
+    }
 }
