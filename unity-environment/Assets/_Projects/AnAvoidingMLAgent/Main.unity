@@ -370,6 +370,7 @@ GameObject:
   - component: {fileID: 912780818}
   - component: {fileID: 912780822}
   - component: {fileID: 912780821}
+  - component: {fileID: 912780823}
   m_Layer: 0
   m_Name: Bird
   m_TagString: Untagged
@@ -538,6 +539,28 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &912780823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 912780817}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0e7297ca94e944feb03a3956273323e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  brain: {fileID: 0}
+  agentParameters:
+    agentCameras: []
+    maxStep: 0
+    resetOnDone: 1
+    onDemandDecision: 0
+    numberOfActionsBetweenDecisions: 1
+  _topBorder: {fileID: 1034803537}
+  _bottomBorder: {fileID: 996417668}
+  _leftBorder: {fileID: 1767453249}
+  _rightBorder: {fileID: 937258878}
 --- !u!1 &937258878
 GameObject:
   m_ObjectHideFlags: 0
