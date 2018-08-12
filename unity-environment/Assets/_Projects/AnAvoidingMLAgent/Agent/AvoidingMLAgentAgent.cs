@@ -56,9 +56,9 @@ public class AvoidingMLAgentAgent : Agent
 
         // Assert.IsNotNull(brain);
 
-        // Discrete is in this case only included for practice.
-        // Only use discrete for discrete choices (eg. which weapon?, which stage?).
-        // Here, the amount matters, which makes continuous a better fit.
+        /// Discrete is in this case only included for practice.
+        /// Only use discrete for discrete choices (eg. which weapon?, which stage?).
+        /// Here, the amount matters, which makes continuous a better fit.
         if (brain.brainParameters.vectorActionSpaceType == SpaceType.discrete)
         {
             switch (action)
@@ -81,8 +81,30 @@ public class AvoidingMLAgentAgent : Agent
             }
             if (!IsDone())
             {
-                SetReward(1.0f);
+                SetReward(0.1f);
             }
+        }
+        /// <summary>
+        /// Continuous action type.
+		/// Allows for applying different amounts.
+        /// </summary>
+        /// <value></value>
+        else
+        {
+            _rigidBody2D.AddForce(Vector2.up * _force * vectorAction[0]);
+            _rigidBody2D.AddForce(Vector2.down * _force * vectorAction[1]);
+            _rigidBody2D.AddForce(Vector2.left * _force * vectorAction[2]);
+            _rigidBody2D.AddForce(Vector2.right * _force * vectorAction[3]);
+
+            if (!IsDone())
+            {
+                SetReward(0.1f);
+            }
+        }
+        if (_hasCrashed)
+        {
+            Done();
+            SetReward(-1.0f);
         }
     }
 }
