@@ -26,4 +26,18 @@ public class AvoidingMLAgentAgent : Agent
         _rigidBody2D = GetComponent<Rigidbody2D>();
         Assert.IsNotNull(_rigidBody2D);
     }
+
+    public override void CollectObservations()
+    {
+        var state = new List<float>()
+        {
+            Vector2.Distance(transform.position, _topBorder.transform.position),
+            Vector2.Distance(transform.position, _bottomBorder.transform.position),
+            Vector2.Distance(transform.position, _leftBorder.transform.position),
+            Vector2.Distance(transform.position, _rightBorder.transform.position),
+            _rigidBody2D.velocity.x,
+            _rigidBody2D.velocity.y,
+        };
+        AddVectorObs(state);
+    }
 }
