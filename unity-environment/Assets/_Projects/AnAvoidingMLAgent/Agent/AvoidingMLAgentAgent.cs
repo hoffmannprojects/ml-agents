@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 
 public class AvoidingMLAgentAgent : Agent
 {
-    private float _force = 0.5f;
+    private readonly float _force = 5.0f;
     private Vector2 _startPosition = Vector2.zero;
     private Rigidbody2D _rigidBody2D = null;
     private bool _hasCrashed = false;
@@ -26,22 +26,39 @@ public class AvoidingMLAgentAgent : Agent
     public override void CollectObservations()
     {
         var raycastDistance = 20.0f;
+
+        var distanceUp = 100f;
         // Raycasts up.
         RaycastHit2D hit2D = Physics2D.Raycast(transform.position, Vector2.up, raycastDistance);
-        var distanceUp = hit2D.distance;
+        if (hit2D.collider)
+        {
+            distanceUp = hit2D.distance; 
+        }
         //Debug.DrawRay(transform.position, Vector2.up, Color.red);
-       
+
+        var distanceDown = 100f;
         // Raycasts down.
         hit2D = Physics2D.Raycast(transform.position, Vector2.down, raycastDistance);
-        var distanceDown = hit2D.distance;
-        
+        if (hit2D.collider)
+        {
+            distanceDown = hit2D.distance;
+        }
+
+        var distanceLeft = 100f;
         // Raycasts left.
         hit2D = Physics2D.Raycast(transform.position, Vector2.left, raycastDistance);
-        var distanceLeft = hit2D.distance;
+        if (hit2D.collider)
+        {
+            distanceLeft = hit2D.distance;
+        }
 
+        var distanceRight = 100f;
         // Raycasts right.
         hit2D = Physics2D.Raycast(transform.position, Vector2.right, raycastDistance);
-        var distanceRight = hit2D.distance;
+        if (hit2D.collider)
+        {
+            distanceRight = hit2D.distance;
+        }
 
         Debug.LogFormat("UP: {0}, DOWN: {1}, LEFT: {2}, RIGHT: {3}", distanceUp, distanceDown, distanceLeft, distanceRight);
 
