@@ -235,3 +235,6 @@ StudentRecurrentBrain:
 # Custom
 CreatingMLAgentFromScratchBrain:
     max_steps: 200000
+
+AvoidingMLAgentBrain:
+    max_steps: 2e5
