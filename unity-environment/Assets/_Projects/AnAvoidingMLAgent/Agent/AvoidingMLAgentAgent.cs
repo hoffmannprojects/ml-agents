@@ -6,11 +6,7 @@ using UnityEngine.Assertions;
 
 public class AvoidingMLAgentAgent : Agent
 {
-    [SerializeField] private GameObject _topBorder = null;
-    [SerializeField] private GameObject _bottomBorder = null;
-    [SerializeField] private GameObject _leftBorder = null;
-    [SerializeField] private GameObject _rightBorder = null;
-    private float _force = 10f;
+    private float _force = 2f;
     private Vector2 _startPosition = Vector2.zero;
     private Rigidbody2D _rigidBody2D = null;
     private bool _hasCrashed = false;
@@ -29,12 +25,28 @@ public class AvoidingMLAgentAgent : Agent
 
     public override void CollectObservations()
     {
+        // Raycasts up.
+        RaycastHit2D hit2D = Physics2D.Raycast(transform.position, Vector2.up);
+        var distanceUp = hit2D.distance;
+
+        // Raycasts down.
+        hit2D = Physics2D.Raycast(transform.position, Vector2.down);
+        var distanceDown = hit2D.distance;
+
+        // Raycasts left.
+        hit2D = Physics2D.Raycast(transform.position, Vector2.left);
+        var distanceLeft = hit2D.distance;
+
+        // Raycasts right.
+        hit2D = Physics2D.Raycast(transform.position, Vector2.right);
+        var distanceRight = hit2D.distance;
+
         var state = new List<float>()
         {
-            Vector2.Distance(transform.position, _topBorder.transform.position),
-            Vector2.Distance(transform.position, _bottomBorder.transform.position),
-            Vector2.Distance(transform.position, _leftBorder.transform.position),
-            Vector2.Distance(transform.position, _rightBorder.transform.position),
+            distanceUp,
+            distanceDown,
+            distanceLeft,
+            distanceRight,
             _rigidBody2D.velocity.x,
             _rigidBody2D.velocity.y,
         };
