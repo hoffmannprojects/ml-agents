@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 
 public class AvoidingMLAgentAgent : Agent
 {
-    private float _force = 2f;
+    private float _force = 1f;
     private Vector2 _startPosition = Vector2.zero;
     private Rigidbody2D _rigidBody2D = null;
     private bool _hasCrashed = false;
@@ -28,11 +28,11 @@ public class AvoidingMLAgentAgent : Agent
         // Raycasts up.
         RaycastHit2D hit2D = Physics2D.Raycast(transform.position, Vector2.up);
         var distanceUp = hit2D.distance;
-
+       
         // Raycasts down.
         hit2D = Physics2D.Raycast(transform.position, Vector2.down);
         var distanceDown = hit2D.distance;
-
+        
         // Raycasts left.
         hit2D = Physics2D.Raycast(transform.position, Vector2.left);
         var distanceLeft = hit2D.distance;
