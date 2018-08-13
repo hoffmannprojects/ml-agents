@@ -26,20 +26,23 @@ public class AvoidingMLAgentAgent : Agent
     public override void CollectObservations()
     {
         // Raycasts up.
-        RaycastHit2D hit2D = Physics2D.Raycast(transform.position, Vector2.up);
+        RaycastHit2D hit2D = Physics2D.Raycast(transform.position, Vector2.up, Mathf.Infinity);
         var distanceUp = hit2D.distance;
+        //Debug.DrawRay(transform.position, Vector2.up, Color.red);
        
         // Raycasts down.
-        hit2D = Physics2D.Raycast(transform.position, Vector2.down);
+        hit2D = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity);
         var distanceDown = hit2D.distance;
         
         // Raycasts left.
-        hit2D = Physics2D.Raycast(transform.position, Vector2.left);
+        hit2D = Physics2D.Raycast(transform.position, Vector2.left, Mathf.Infinity);
         var distanceLeft = hit2D.distance;
 
         // Raycasts right.
-        hit2D = Physics2D.Raycast(transform.position, Vector2.right);
+        hit2D = Physics2D.Raycast(transform.position, Vector2.right, Mathf.Infinity);
         var distanceRight = hit2D.distance;
+
+        Debug.LogFormat("UP: {0}, DOWN: {1}, LEFT: {2}, RIGHT: {3}", distanceUp, distanceDown, distanceLeft, distanceRight);
 
         var state = new List<float>()
         {
