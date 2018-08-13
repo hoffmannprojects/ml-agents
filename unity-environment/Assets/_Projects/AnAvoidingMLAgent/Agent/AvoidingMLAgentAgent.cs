@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 
 public class AvoidingMLAgentAgent : Agent
 {
-    private float _force = 1f;
+    private float _force = 0.5f;
     private Vector2 _startPosition = Vector2.zero;
     private Rigidbody2D _rigidBody2D = null;
     private bool _hasCrashed = false;
