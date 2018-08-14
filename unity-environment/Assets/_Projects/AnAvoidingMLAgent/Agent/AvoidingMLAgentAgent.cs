@@ -25,6 +25,8 @@ public class AvoidingMLAgentAgent : Agent
 
     public override void CollectObservations()
     {
+        // Define observations.
+        
         var raycastDistance = 20.0f;
 
         var distanceUp = 100f;
@@ -34,7 +36,6 @@ public class AvoidingMLAgentAgent : Agent
         {
             distanceUp = hit2D.distance; 
         }
-        //Debug.DrawRay(transform.position, Vector2.up, Color.red);
 
         var distanceDown = 100f;
         // Raycasts down.
@@ -60,7 +61,7 @@ public class AvoidingMLAgentAgent : Agent
             distanceRight = hit2D.distance;
         }
 
-        Debug.LogFormat("UP: {0}, DOWN: {1}, LEFT: {2}, RIGHT: {3}", distanceUp, distanceDown, distanceLeft, distanceRight);
+        // Submit observations.
 
         /// [IMPORTANT!] 
         /// Submitting observations in a single list seems to lead
