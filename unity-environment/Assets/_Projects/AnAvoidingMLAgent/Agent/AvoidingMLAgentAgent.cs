@@ -62,16 +62,23 @@ public class AvoidingMLAgentAgent : Agent
 
         Debug.LogFormat("UP: {0}, DOWN: {1}, LEFT: {2}, RIGHT: {3}", distanceUp, distanceDown, distanceLeft, distanceRight);
 
-        var state = new List<float>()
-        {
-            distanceUp,
-            distanceDown,
-            distanceLeft,
-            distanceRight,
-            _rigidBody2D.velocity.x,
-            _rigidBody2D.velocity.y,
-        };
-        AddVectorObs(state);
+        //var state = new List<float>()
+        //{
+        //    distanceUp,
+        //    distanceDown,
+        //    distanceLeft,
+        //    distanceRight,
+        //    _rigidBody2D.velocity.x,
+        //    _rigidBody2D.velocity.y,
+        //};
+        //AddVectorObs(state);
+
+        AddVectorObs(distanceUp);
+        AddVectorObs(distanceDown);
+        AddVectorObs(distanceLeft);
+        AddVectorObs(distanceRight);
+        AddVectorObs(_rigidBody2D.velocity.x);
+        AddVectorObs(_rigidBody2D.velocity.y);
     }
 
     /// <summary>
