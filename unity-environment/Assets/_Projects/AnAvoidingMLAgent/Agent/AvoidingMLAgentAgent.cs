@@ -62,6 +62,9 @@ public class AvoidingMLAgentAgent : Agent
 
         Debug.LogFormat("UP: {0}, DOWN: {1}, LEFT: {2}, RIGHT: {3}", distanceUp, distanceDown, distanceLeft, distanceRight);
 
+        /// [IMPORTANT!] 
+        /// Submitting observations in a single list seems to lead
+        /// to undesired results!!!
         //var state = new List<float>()
         //{
         //    distanceUp,
@@ -73,6 +76,7 @@ public class AvoidingMLAgentAgent : Agent
         //};
         //AddVectorObs(state);
 
+        /// Therefore, submitting each observation separately.
         AddVectorObs(distanceUp);
         AddVectorObs(distanceDown);
         AddVectorObs(distanceLeft);
