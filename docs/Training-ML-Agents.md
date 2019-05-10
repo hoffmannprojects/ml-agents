@@ -14,13 +14,13 @@ expert in the same situation.
 The output of the training process is a model file containing the optimized
 policy. This model file is a TensorFlow data graph containing the mathematical
 operations and the optimized weights selected during the training process. You
-can use the generated model file with the Internal Brain type in your Unity
+can use the generated model file with the Learning Brain type in your Unity
 project to decide the best course of action for an agent.
 
 Use the command `mlagents-learn` to train your agents. This command is installed
 with the `mlagents` package and its implementation can be found at
 `ml-agents/mlagents/trainers/learn.py`. The [configuration file](#training-config-file),
-`config/trainer_config.yaml` specifies the hyperparameters used during training.
+like `config/trainer_config.yaml` specifies the hyperparameters used during training.
 You can edit this file with a text editor to add a specific configuration for
 each Brain.
 
@@ -85,7 +85,7 @@ And then opening the URL: [localhost:6006](http://localhost:6006).
 
 When training is finished, you can find the saved model in the `models` folder
 under the assigned run-id — in the cats example, the path to the model would be
-`models/cob_1/CatsOnBicycles_cob_1.bytes`.
+`models/cob_1/CatsOnBicycles_cob_1.nn`.
 
 While this example used the default training hyperparameters, you can edit the
 [training_config.yaml file](#training-config-file) with a text editor to set
@@ -134,11 +134,9 @@ environment, you can set the following command line options when invoking
   [Academy Properties](Learning-Environment-Design-Academy.md#academy-properties).
 * `--train` – Specifies whether to train model or only run in inference mode.
   When training, **always** use the `--train` option.
-* `--worker-id=<n>` – When you are running more than one training environment at
-  the same time, assign each a unique worker-id number. The worker-id is added
-  to the communication port opened between the current instance of
-  `mlagents-learn` and the ExternalCommunicator object in the Unity environment.
-  Defaults to 0.
+* `--num-envs=<n>` - Specifies the number of concurrent Unity environment instances to collect
+  experiences from when training. Defaults to 1.
+* `--base-port` - Specifies the starting port. Each concurrent Unity environment instance will get assigned a port sequentially, starting from the `base-port`.  Each instance will use the port `(base_port + worker_id)`, where the `worker_id` is sequential IDs given to each instance from 0 to `num_envs - 1`. Default is 5005.
 * `--docker-target-name=<dt>` – The Docker Volume on which to store curriculum,
   executable and model files. See [Using Docker](Using-Docker.md).
 * `--no-graphics` - Specify this option to run the Unity executable in
@@ -146,26 +144,33 @@ environment, you can set the following command line options when invoking
   training doesn't involve visual observations (reading from Pixels). See
   [here](https://docs.unity3d.com/Manual/CommandLineArguments.html) for more
   details.
+* `--debug` - Specify this option to run ML-Agents in debug mode and log Trainer
+  Metrics to a CSV stored in the `summaries` directory. The metrics  stored are:
+  brain name, time to update policy, time since start of training, time for last experience collection, number of experiences used for training, mean return. This
+  option is not available currently for Imitation Learning.
 
 ### Training config file
 
-The training config file, `config/trainer_config.yaml` specifies the training
-method, the hyperparameters, and a few additional values to use during training.
-The file is divided into sections. The **default** section defines the default
-values for all the available settings. You can also add new sections to override
-these defaults to train specific Brains. Name each of these override sections
-after the GameObject containing the Brain component that should use these
-settings. (This GameObject will be a child of the Academy in your scene.)
-Sections for the example environments are included in the provided config file.
+The training config files `config/trainer_config.yaml`,
+`config/online_bc_config.yaml` and `config/offline_bc_config.yaml` specifies the
+training method, the hyperparameters, and a few additional values to use during
+training with PPO, online and offline BC. These files are divided into sections.
+The **default** section defines the default values for all the available
+settings. You can also add new sections to override these defaults to train
+specific Brains. Name each of these override sections after the GameObject
+containing the Brain component that should use these settings. (This GameObject
+will be a child of the Academy in your scene.) Sections for the example
+environments are included in the provided config file.
 
 |     **Setting**      |                                                                                     **Description**                                                                                     | **Applies To Trainer\*** |
 | :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------- |
 | batch_size           | The number of experiences in each iteration of gradient descent.                                                                                                                        | PPO, BC                  |
 | batches_per_epoch    | In imitation learning, the number of batches of training examples to collect before training the model.                                                                                 | BC                       |
 | beta                 | The strength of entropy regularization.                                                                                                                                                 | PPO                      |
-| brain\_to\_imitate   | For imitation learning, the name of the GameObject containing the Brain component to imitate.                                                                                           | BC                       |
+| brain\_to\_imitate   | For online imitation learning, the name of the GameObject containing the Brain component to imitate.                                                                                    | (online)BC               |
+| demo_path            | For offline imitation learning, the file path of the recorded demonstration file                                                                                                        | (offline)BC              |
 | buffer_size          | The number of experiences to collect before updating the policy model.                                                                                                                  | PPO                      |
-| curiosity\_enc\_size | The size of the encoding to use in the forward and inverse models in the Curioity module.                                                                                               | PPO                      |
+| curiosity\_enc\_size | The size of the encoding to use in the forward and inverse models in the Curiosity module.                                                                                               | PPO                      |
 | curiosity_strength   | Magnitude of intrinsic reward generated by Intrinsic Curiosity Module.                                                                                                                  | PPO                      |
 | epsilon              | Influences how rapidly the policy can evolve during training.                                                                                                                           | PPO                      |
 | gamma                | The reward discount rate for the Generalized Advantage Estimator (GAE).                                                                                                                 | PPO                      |
@@ -179,7 +184,7 @@ Sections for the example environments are included in the provided config file.
 | num_layers           | The number of hidden layers in the neural network.                                                                                                                                      | PPO, BC                  |
 | sequence_length      | Defines how long the sequences of experiences must be while training. Only used for training with a recurrent neural network. See [Using Recurrent Neural Networks](Feature-Memory.md). | PPO, BC                  |
 | summary_freq         | How often, in steps, to save training statistics. This determines the number of data points shown by TensorBoard.                                                                       | PPO, BC                  |
-| time_horizon         | How many steps of experience to collect per-agent before adding it to the experience buffer.                                                                                            | PPO, BC                  |
+| time_horizon         | How many steps of experience to collect per-agent before adding it to the experience buffer.                                                                                            | PPO, (online)BC          |
 | trainer              | The type of training to perform: "ppo" or "imitation".                                                                                                                                  | PPO, BC                  |
 | use_curiosity        | Train using an additional intrinsic reward signal generated from Intrinsic Curiosity Module.                                                                                            | PPO                      |
 | use_recurrent        | Train using a recurrent neural network. See [Using Recurrent Neural Networks](Feature-Memory.md).                                                                                       | PPO, BC                  |

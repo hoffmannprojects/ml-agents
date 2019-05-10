@@ -3,7 +3,6 @@
 # Contains an implementation of PPO as described (https://arxiv.org/abs/1707.06347).
 
 import logging
-import os
 from collections import deque
 
 import numpy as np
@@ -12,47 +11,46 @@ import tensorflow as tf
 from mlagents.envs import AllBrainInfo, BrainInfo
 from mlagents.trainers.buffer import Buffer
 from mlagents.trainers.ppo.policy import PPOPolicy
-from mlagents.trainers.trainer import UnityTrainerException, Trainer
+from mlagents.trainers.trainer import Trainer
 
-logger = logging.getLogger("mlagents.envs")
+
+logger = logging.getLogger("mlagents.trainers")
 
 
 class PPOTrainer(Trainer):
     """The PPOTrainer is an implementation of the PPO algorithm."""
 
-    def __init__(self, sess, brain, reward_buff_cap, trainer_parameters, training, seed, run_id):
+    def __init__(self, brain, reward_buff_cap, trainer_parameters, training,
+                 load, seed, run_id):
         """
         Responsible for collecting experiences and training PPO model.
-        :param sess: Tensorflow session.
-        :param  trainer_parameters: The parameters for the trainer (dictionary).
+        :param trainer_parameters: The parameters for the trainer (dictionary).
         :param training: Whether the trainer is set for training.
+        :param load: Whether the model should be loaded.
+        :param seed: The seed the model will be initialized with
+        :param run_id: The The identifier of the current run
         """
-        super(PPOTrainer, self).__init__(sess, brain.brain_name, trainer_parameters, training, run_id)
-
+        super(PPOTrainer, self).__init__(brain, trainer_parameters,
+                                         training, run_id)
         self.param_keys = ['batch_size', 'beta', 'buffer_size', 'epsilon', 'gamma', 'hidden_units', 'lambd',
                            'learning_rate', 'max_steps', 'normalize', 'num_epoch', 'num_layers',
                            'time_horizon', 'sequence_length', 'summary_freq', 'use_recurrent',
-                           'graph_scope', 'summary_path', 'memory_size', 'use_curiosity', 'curiosity_strength',
-                           'curiosity_enc_size']
+                           'summary_path', 'memory_size', 'use_curiosity', 'curiosity_strength',
+                           'curiosity_enc_size', 'model_path']
 
-        for k in self.param_keys:
-            if k not in trainer_parameters:
-                raise UnityTrainerException("The hyperparameter {0} could not be found for the PPO trainer of "
-                                            "brain {1}.".format(k, brain.brain_name))
-
+        self.check_param_keys()
         self.use_curiosity = bool(trainer_parameters['use_curiosity'])
-
         self.step = 0
-
         self.policy = PPOPolicy(seed, brain, trainer_parameters,
-                                sess, self.is_training)
+                                self.is_training, load)
 
-        stats = {'cumulative_reward': [], 'episode_length': [], 'value_estimate': [],
-                 'entropy': [], 'value_loss': [], 'policy_loss': [], 'learning_rate': []}
+        stats = {'Environment/Cumulative Reward': [], 'Environment/Episode Length': [],
+                 'Policy/Value Estimate': [], 'Policy/Entropy': [], 'Losses/Value Loss': [],
+                 'Losses/Policy Loss': [], 'Policy/Learning Rate': []}
         if self.use_curiosity:
-            stats['forward_loss'] = []
-            stats['inverse_loss'] = []
-            stats['intrinsic_reward'] = []
+            stats['Losses/Forward Loss'] = []
+            stats['Losses/Inverse Loss'] = []
+            stats['Policy/Curiosity Reward'] = []
             self.intrinsic_rewards = {}
         self.stats = stats
 
@@ -60,11 +58,6 @@ class PPOTrainer(Trainer):
         self.cumulative_rewards = {}
         self._reward_buffer = deque(maxlen=reward_buff_cap)
         self.episode_steps = {}
-        self.summary_path = trainer_parameters['summary_path']
-        if not os.path.exists(self.summary_path):
-            os.makedirs(self.summary_path)
-
-        self.summary_writer = tf.summary.FileWriter(self.summary_path)
 
     def __str__(self):
         return '''Hyperparameters for the PPO Trainer of brain {0}: \n{1}'''.format(
@@ -107,32 +100,11 @@ class PPOTrainer(Trainer):
         """
         Increment the step count of the trainer and Updates the last reward
         """
-        if len(self.stats['cumulative_reward']) > 0:
-            mean_reward = np.mean(self.stats['cumulative_reward'])
+        if len(self.stats['Environment/Cumulative Reward']) > 0:
+            mean_reward = np.mean(self.stats['Environment/Cumulative Reward'])
             self.policy.update_reward(mean_reward)
         self.policy.increment_step()
         self.step = self.policy.get_current_step()
-
-    def take_action(self, all_brain_info: AllBrainInfo):
-        """
-        Decides actions given observations information, and takes them in environment.
-        :param all_brain_info: A dictionary of brain names and BrainInfo from environment.
-        :return: a tuple containing action, memories, values and an object
-        to be passed to add experiences
-        """
-        curr_brain_info = all_brain_info[self.brain_name]
-        if len(curr_brain_info.agents) == 0:
-            return [], [], [], None, None
-
-        run_out = self.policy.evaluate(curr_brain_info)
-        self.stats['value_estimate'].append(run_out['value'].mean())
-        self.stats['entropy'].append(run_out['entropy'].mean())
-        self.stats['learning_rate'].append(run_out['learning_rate'])
-        if self.policy.use_recurrent:
-            return run_out['action'], run_out['memory_out'], None, \
-                   run_out['value'], run_out
-        else:
-            return run_out['action'], None, None, run_out['value'], run_out
 
     def construct_curr_info(self, next_info: BrainInfo) -> BrainInfo:
         """
@@ -151,6 +123,7 @@ class PPOTrainer(Trainer):
         agents = []
         prev_vector_actions = []
         prev_text_actions = []
+        action_masks = []
         for agent_id in next_info.agents:
             agent_brain_info = self.training_buffer[agent_id].last_brain_info
             if agent_brain_info is None:
@@ -161,7 +134,7 @@ class PPOTrainer(Trainer):
             vector_observations.append(agent_brain_info.vector_observations[agent_index])
             text_observations.append(agent_brain_info.text_observations[agent_index])
             if self.policy.use_recurrent:
-                if len(agent_brain_info.memories > 0):
+                if len(agent_brain_info.memories) > 0:
                     memories.append(agent_brain_info.memories[agent_index])
                 else:
                     memories.append(self.policy.make_empty_memory(1))
@@ -171,11 +144,12 @@ class PPOTrainer(Trainer):
             agents.append(agent_brain_info.agents[agent_index])
             prev_vector_actions.append(agent_brain_info.previous_vector_actions[agent_index])
             prev_text_actions.append(agent_brain_info.previous_text_actions[agent_index])
+            action_masks.append(agent_brain_info.action_masks[agent_index])
         if self.policy.use_recurrent:
             memories = np.vstack(memories)
         curr_info = BrainInfo(visual_observations, vector_observations, text_observations,
                               memories, rewards, agents, local_dones, prev_vector_actions,
-                              prev_text_actions, max_reacheds)
+                              prev_text_actions, max_reacheds, action_masks)
         return curr_info
 
     def add_experiences(self, curr_all_info: AllBrainInfo, next_all_info: AllBrainInfo, take_action_outputs):
@@ -183,8 +157,14 @@ class PPOTrainer(Trainer):
         Adds experiences to each agent's experience history.
         :param curr_all_info: Dictionary of all current brains and corresponding BrainInfo.
         :param next_all_info: Dictionary of all current brains and corresponding BrainInfo.
-        :param take_action_outputs: The outputs of the take action method.
+        :param take_action_outputs: The outputs of the Policy's get_action method.
         """
+        self.trainer_metrics.start_experience_collection_timer()
+        if take_action_outputs:
+            self.stats['Policy/Value Estimate'].append(take_action_outputs['value'].mean())
+            self.stats['Policy/Entropy'].append(take_action_outputs['entropy'].mean())
+            self.stats['Policy/Learning Rate'].append(take_action_outputs['learning_rate'])
+
         curr_info = curr_all_info[self.brain_name]
         next_info = next_all_info[self.brain_name]
 
@@ -223,9 +203,12 @@ class PPOTrainer(Trainer):
                     if self.policy.use_continuous_act:
                         actions_pre = stored_take_action_outputs['pre_action']
                         self.training_buffer[agent_id]['actions_pre'].append(actions_pre[idx])
+                        epsilons = stored_take_action_outputs['random_normal_epsilon']
+                        self.training_buffer[agent_id]['random_normal_epsilon'].append(
+                            epsilons[idx])
                     else:
                         self.training_buffer[agent_id]['action_mask'].append(
-                            stored_info.action_masks[idx])
+                            stored_info.action_masks[idx], padding_value=1)
                     a_dist = stored_take_action_outputs['log_probs']
                     value = stored_take_action_outputs['value']
                     self.training_buffer[agent_id]['actions'].append(actions[idx])
@@ -249,6 +232,7 @@ class PPOTrainer(Trainer):
                     if agent_id not in self.episode_steps:
                         self.episode_steps[agent_id] = 0
                     self.episode_steps[agent_id] += 1
+        self.trainer_metrics.end_experience_collection_timer()
 
     def process_experiences(self, current_info: AllBrainInfo, new_info: AllBrainInfo):
         """
@@ -257,7 +241,7 @@ class PPOTrainer(Trainer):
         :param current_info: Dictionary of all current brains and corresponding BrainInfo.
         :param new_info: Dictionary of all next brains and corresponding BrainInfo.
         """
-
+        self.trainer_metrics.start_experience_collection_timer()
         info = new_info[self.brain_name]
         for l in range(len(info.agents)):
             agent_actions = self.training_buffer[info.agents[l]]['actions']
@@ -291,24 +275,27 @@ class PPOTrainer(Trainer):
 
                 self.training_buffer[agent_id].reset_agent()
                 if info.local_done[l]:
-                    self.stats['cumulative_reward'].append(
+                    self.cumulative_returns_since_policy_update.append(self.
+                                                                       cumulative_rewards.get(agent_id, 0))
+                    self.stats['Environment/Cumulative Reward'].append(
                         self.cumulative_rewards.get(agent_id, 0))
                     self.reward_buffer.appendleft(self.cumulative_rewards.get(agent_id, 0))
-                    self.stats['episode_length'].append(
+                    self.stats['Environment/Episode Length'].append(
                         self.episode_steps.get(agent_id, 0))
                     self.cumulative_rewards[agent_id] = 0
                     self.episode_steps[agent_id] = 0
                     if self.use_curiosity:
-                        self.stats['intrinsic_reward'].append(
+                        self.stats['Policy/Curiosity Reward'].append(
                             self.intrinsic_rewards.get(agent_id, 0))
                         self.intrinsic_rewards[agent_id] = 0
+        self.trainer_metrics.end_experience_collection_timer()
 
     def end_episode(self):
         """
-        A signal that the Episode has ended. The buffer must be reset. 
+        A signal that the Episode has ended. The buffer must be reset.
         Get only called when the academy resets.
         """
-        self.training_buffer.reset_all()
+        self.training_buffer.reset_local_buffers()
         for agent_id in self.cumulative_rewards:
             self.cumulative_rewards[agent_id] = 0
         for agent_id in self.episode_steps:
@@ -327,15 +314,18 @@ class PPOTrainer(Trainer):
 
     def update_policy(self):
         """
-        Uses training_buffer to update the policy.
+        Uses demonstration_buffer to update the policy.
         """
+        self.trainer_metrics.start_policy_update_timer(
+            number_experiences=len(self.training_buffer.update_buffer['actions']),
+            mean_return=float(np.mean(self.cumulative_returns_since_policy_update)))
         n_sequences = max(int(self.trainer_parameters['batch_size'] / self.policy.sequence_length), 1)
         value_total, policy_total, forward_total, inverse_total = [], [], [], []
         advantages = self.training_buffer.update_buffer['advantages'].get_batch()
         self.training_buffer.update_buffer['advantages'].set(
             (advantages - advantages.mean()) / (advantages.std() + 1e-10))
         num_epoch = self.trainer_parameters['num_epoch']
-        for k in range(num_epoch):
+        for _ in range(num_epoch):
             self.training_buffer.update_buffer.shuffle()
             buffer = self.training_buffer.update_buffer
             for l in range(len(self.training_buffer.update_buffer['actions']) // n_sequences):
@@ -347,13 +337,13 @@ class PPOTrainer(Trainer):
                 if self.use_curiosity:
                     inverse_total.append(run_out['inverse_loss'])
                     forward_total.append(run_out['forward_loss'])
-        self.stats['value_loss'].append(np.mean(value_total))
-        self.stats['policy_loss'].append(np.mean(policy_total))
+        self.stats['Losses/Value Loss'].append(np.mean(value_total))
+        self.stats['Losses/Policy Loss'].append(np.mean(policy_total))
         if self.use_curiosity:
-            self.stats['forward_loss'].append(np.mean(forward_total))
-            self.stats['inverse_loss'].append(np.mean(inverse_total))
+            self.stats['Losses/Forward Loss'].append(np.mean(forward_total))
+            self.stats['Losses/Inverse Loss'].append(np.mean(inverse_total))
         self.training_buffer.reset_update_buffer()
-
+        self.trainer_metrics.end_policy_update()
 
 def discount_rewards(r, gamma=0.99, value_next=0.0):
     """

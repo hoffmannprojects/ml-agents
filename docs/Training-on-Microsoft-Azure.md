@@ -9,7 +9,7 @@ support.
 ## Pre-Configured Azure Virtual Machine
 
 A pre-configured virtual machine image is available in the Azure Marketplace and
-is nearly compltely ready for training.  You can start by deploying the
+is nearly completely ready for training.  You can start by deploying the
 [Data Science Virtual Machine for Linux (Ubuntu)](https://azuremarketplace.microsoft.com/marketplace/apps/microsoft-ads.linux-data-science-vm-ubuntu)
 into your Azure subscription.  Once your VM is deployed, SSH into it and run the
 following command to complete dependency installation:
@@ -75,15 +75,15 @@ mlagents-learn <trainer_config> --env=<your_app> --run-id=<run_id> --train
 ```
 
 Where `<your_app>` is the path to your app (i.e.
-`~/unity-volume/3DBallHeadless`) and `<run_id>` is an identifer you would like
+`~/unity-volume/3DBallHeadless`) and `<run_id>` is an identifier you would like
 to identify your training run with.
 
 If you've selected to run on a N-Series VM with GPU support, you can verify that
 the GPU is being used by running `nvidia-smi` from the command line.
 
-## Monitoring your Training Run with Tensorboard
+## Monitoring your Training Run with TensorBoard
 
-Once you have started training, you can [use Tensorboard to observe the
+Once you have started training, you can [use TensorBoard to observe the
 training](Using-Tensorboard.md).  
 
 1. Start by [opening the appropriate port for web traffic to connect to your VM](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/nsg-quickstart-portal).  
